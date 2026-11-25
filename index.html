@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Management System</title>
+<style>
+:root{--navy:#173c70;--blue:#2458a6;--bg:#f3f6fb;--ink:#1c2940;--muted:#68758a;--line:#dfe6ef;--white:#fff;--red:#c43f4d}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#173c70,#2865ac);color:white;padding:28px max(20px,calc((100% - 1120px)/2));}
+header small{opacity:.8;letter-spacing:1.5px;font-weight:bold}header h1{margin:9px 0 5px;font-size:clamp(24px,4vw,34px)}header p{margin:0;opacity:.85}
+main{max-width:1120px;margin:24px auto;padding:0 18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}.stat,.panel{background:var(--white);border:1px solid var(--line);border-radius:13px;box-shadow:0 4px 16px #18365b0a}
+.stat{padding:17px}.stat span{font-size:13px;color:var(--muted)}.stat strong{display:block;font-size:28px;margin-top:7px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.navbtn,.btn{border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:white;color:var(--ink);font-weight:600;cursor:pointer}.navbtn.active,.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:hover,.navbtn:hover{filter:brightness(.96)}
+.panel{padding:20px;margin-bottom:18px}.panel h2{font-size:20px;margin:0 0 7px}.muted{color:var(--muted);font-size:14px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+label{font-size:13px;font-weight:600}input,select{display:block;width:100%;margin-top:7px;padding:11px;border:1px solid #ccd6e3;border-radius:8px;font-size:14px;background:white;color:var(--ink)}
+input:focus,select:focus{outline:2px solid #9dbbe9;border-color:var(--blue)}
+.form-actions{grid-column:1/-1;display:flex;gap:9px;flex-wrap:wrap}.message{margin-top:12px;font-size:14px;color:#237447}
+.search{max-width:420px;margin:12px 0 16px}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:740px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}td button{padding:7px 9px;margin-right:4px;font-size:12px}.delete{color:var(--red)}
+[hidden]{display:none!important}footer{text-align:center;color:var(--muted);font-size:12px;padding:15px 10px 28px}
+@media(max-width:620px){.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:23px}form{grid-template-columns:1fr}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<header><small>STUDENT PORTAL</small><h1>🎓 Student Management System</h1><p>Manage student information easily and efficiently.</p></header>
+<main>
+<section class="stats">
+ <div class="stat"><span>Total Students</span><strong id="total">0</strong></div>
+ <div class="stat"><span>Courses</span><strong id="courses">0</strong></div>
+ <div class="stat"><span>Departments</span><strong id="departments">0</strong></div>
+</section>
+<nav>
+ <button class="navbtn active" data-page="dashboard">Dashboard</button>
+ <button class="navbtn" data-page="formPage">Add Student</button>
+ <button class="navbtn" data-page="recordsPage">Student Records</button>
+</nav>
+<section class="panel" id="dashboard">
+ <h2>Welcome to the Dashboard</h2><p class="muted">Use this application to add, view, update, search and delete student records.</p>
+ <div class="actions"><button class="btn primary" data-open="formPage">＋ Add Student</button><button class="btn" data-open="recordsPage">View Students</button></div>
+ <h3 style="font-size:15px;margin:25px 0 8px">Recent Students</h3><div id="recent" class="muted">No student records yet.</div>
+</section>
+<section class="panel" id="formPage" hidden>
+ <h2 id="formTitle">Add New Student</h2><p class="muted">Enter the student's details below. Name and roll number are required.</p>
+ <form id="studentForm">
+  <label>Student Name<input id="name" required placeholder="Enter student name"></label>
+  <label>Roll Number<input id="roll" required placeholder="Enter roll number"></label>
+  <label>Email<input id="email" type="email" placeholder="student@example.com"></label>
+  <label>Phone<input id="phone" type="tel" placeholder="Enter phone number"></label>
+  <label>Course<select id="course"><option>B.Tech</option><option>B.Sc</option><option>B.Com</option><option>BA</option><option>MCA</option><option>MBA</option><option>Other</option></select></label>
+  <label>Department<select id="dept"><option>Computer Science</option><option>Electronics</option><option>Mechanical</option><option>Civil</option><option>Commerce</option><option>Arts</option><option>Other</option></select></label>
+  <div class="form-actions"><button class="btn primary" id="saveBtn" type="submit">Add Student</button><button class="btn" type="button" id="clearBtn">Clear Fields</button><button class="btn" type="button" id="cancelBtn" hidden>Cancel Edit</button></div>
+ </form><div class="message" id="message" role="status"></div>
+</section>
+<section class="panel" id="recordsPage" hidden>
+ <h2>Student Records</h2><p class="muted">Search by student name or roll number. Use the action buttons to edit or delete a record.</p>
+ <input class="search" id="search" type="search" placeholder="Search name or roll number...">
+ <div class="tablewrap"><table><thead><tr><th>Name</th><th>Roll Number</th><th>Email</th><th>Phone</th><th>Course</th><th>Department</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+ <p class="muted" id="recordCount"></p>
+</section>
+</main>
+<footer>Student Management System · Interactive Website Prototype</footer>
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ const STORAGE_KEY = 'studentManagementRecordsV1';
+ let students = [];
+ try { students = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); if(!Array.isArray(students)) students=[]; } catch(e){students=[];}
+ let editing = null;
+ const fields = ['name','roll','email','phone','course','dept'];
+ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(students));}
+ function showPage(page){
+  ['dashboard','formPage','recordsPage'].forEach(id=>$(id).hidden=id!==page);
+  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  if(page==='recordsPage') render(); if(page==='dashboard') renderRecent();
+ }
+ function updateStats(){
+  $('total').textContent=students.length;
+  $('courses').textContent=new Set(students.map(s=>s.course)).size;
+  $('departments').textContent=new Set(students.map(s=>s.dept)).size;
+ }
+ function renderRecent(){
+  $('recent').innerHTML=students.slice(-4).reverse().map(s=>`<div style="padding:9px 0;border-bottom:1px solid #e5eaf1"><b>${esc(s.name)}</b> <span class="muted">· ${esc(s.roll)} · ${esc(s.course)}</span></div>`).join('') || 'No student records yet. Add your first student to get started.';
+ }
+ function render(){
+  const query=$('search').value.trim().toLowerCase();
+  const visible=students.map((s,i)=>({...s,index:i})).filter(s=>s.name.toLowerCase().includes(query)||s.roll.toLowerCase().includes(query));
+  $('rows').innerHTML=visible.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.roll)}</td><td>${esc(s.email)}</td><td>${esc(s.phone)}</td><td>${esc(s.course)}</td><td>${esc(s.dept)}</td><td><button class="btn" data-edit="${s.index}">Edit</button><button class="btn delete" data-delete="${s.index}">Delete</button></td></tr>`).join('') || '<tr><td colspan="7">No matching student records found.</td></tr>';
+  $('recordCount').textContent=`Showing ${visible.length} of ${students.length} student(s).`; updateStats();
+ }
+ function resetForm(){
+  $('studentForm').reset(); editing=null; $('formTitle').textContent='Add New Student'; $('saveBtn').textContent='Add Student'; $('cancelBtn').hidden=true; $('message').textContent='';
+ }
+ document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+ document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.open)));
+ $('clearBtn').addEventListener('click',resetForm);
+ $('cancelBtn').addEventListener('click',()=>{resetForm();showPage('recordsPage');});
+ $('studentForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const student=Object.fromEntries(fields.map(k=>[k,$(k).value.trim()]));
+  if(!student.name||!student.roll)return;
+  const duplicate=students.some((s,i)=>s.roll.toLowerCase()===student.roll.toLowerCase()&&i!==editing);
+  if(duplicate){$('message').textContent='That roll number already exists. Please enter a unique roll number.';return;}
+  if(editing===null){students.push(student);$('message').textContent='Student added successfully.';}
+  else {students[editing]=student;$('message').textContent='Student updated successfully.';}
+  save();resetForm();render();renderRecent();showPage('recordsPage');
+ });
+ $('search').addEventListener('input',render);
+ $('rows').addEventListener('click',e=>{
+  const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');
+  if(edit){
+   editing=Number(edit.dataset.edit);const s=students[editing];fields.forEach(k=>$(k).value=s[k]);
+   $('formTitle').textContent='Update Student';$('saveBtn').textContent='Save Changes';$('cancelBtn').hidden=false;showPage('formPage');
+  }
+  if(del){
+   const i=Number(del.dataset.delete);
+   if(confirm(`Delete the record for ${students[i].name}?`)){students.splice(i,1);save();render();renderRecent();}
+  }
+ });
+ updateStats();renderRecent();render();
+})();
+</script>
+</body>
+</html>
